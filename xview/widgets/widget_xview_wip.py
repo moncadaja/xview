@@ -2,14 +2,14 @@ import os
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import  QtWidgets, QtCore, uic
-from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QMenu
-from PyQt5.Qt import Qt
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+from qtpy import  QtWidgets, QtCore, uic
+from qtpy.QtCore import QSettings
+from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QStandardItemModel, QStandardItem
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 
 from sys import platform
@@ -27,9 +27,9 @@ from tiled.client import from_uri
 from databroker.queries import TimeRange, Key
 
 if platform == 'darwin':
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_data-mac.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_data-mac.ui')
 else:
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_wip.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_wip.ui')
 
 class ExperimentTreeModel(QStandardItemModel):
     def __init__(self, parent=None):
@@ -109,7 +109,7 @@ class UIXviewWIP(*uic.loadUiType(ui_path)):
         # merge_action = menu.addAction("&Add to project")
         parentPosition = self.list_data.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition+QPos)
-        action = menu.exec_()
+        action = menu.exec()
         if action == plot_action:
             self.plot_xas_data()
         elif action == add_to_project_action:
@@ -229,7 +229,7 @@ class UIXviewWIP(*uic.loadUiType(ui_path)):
             spectra = []
             y_label = ''
             for numerator, numerator_name in zip(numerators, numerators_names):
-                if self.checkBox_ratio.checkState():
+                if self.checkBox_ratio.isChecked():
                     mu_channel = f'{numerator_name}/{denominator_name}'
 
                     spectra.append(numerator/denominator)
@@ -238,10 +238,10 @@ class UIXviewWIP(*uic.loadUiType(ui_path)):
                     spectra.append(numerator)
                 y_label += mu_channel
             for spectrum in spectra:
-                if self.checkBox_log_bin.checkState():
+                if self.checkBox_log_bin.isChecked():
                     spectrum = np.log(spectrum)
                     y_label = f'ln ({y_label})'
-                if self.checkBox_inv_bin.checkState():
+                if self.checkBox_inv_bin.isChecked():
                     spectrum = -spectrum
                     y_label = f'- {y_label}'
                 fname = i.text()
@@ -410,16 +410,16 @@ class UIXviewWIP(*uic.loadUiType(ui_path)):
             energy = df[energy_key]
 
             for numerator, numerator_name in zip(numerators, numerators_names):
-                if self.checkBox_ratio.checkState():
+                if self.checkBox_ratio.isChecked():
                     spectrum = (numerator / denominator)
                     mu_channel = f'{numerator_name}-{denominator_name}'
                 else:
                     spectrum = numerator
                     mu_channel = f'{numerator_name}-{denominator_name}'
 
-                if self.checkBox_log_bin.checkState():
+                if self.checkBox_log_bin.isChecked():
                     spectrum = np.log(spectrum)
-                if self.checkBox_inv_bin.checkState():
+                if self.checkBox_inv_bin.isChecked():
                     spectrum = -spectrum
                 try:
                     df_norm = {}

@@ -1,6 +1,6 @@
 # from pymatgen.io.feff.sets import MPXANESSet, MPEXAFSSet, FEFFDictSet
 from xraydb import atomic_symbol
-from PyQt5 import uic
+from qtpy import uic
 import os
 
 

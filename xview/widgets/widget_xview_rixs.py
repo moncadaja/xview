@@ -1,13 +1,13 @@
 import os
 import matplotlib.patches as mpatches
 import numpy as np
-import pkg_resources
+import importlib.resources
 import copy
-from PyQt5 import  QtWidgets, QtCore, uic
-from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QMenu
-from PyQt5.Qt import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+from qtpy import  QtWidgets, QtCore, uic
+from qtpy.QtCore import QSettings
+from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import Qt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 
 from sys import platform
@@ -25,11 +25,11 @@ import pyqtgraph as pg
 from xas.spectrometer import parse_rixs_scan, parse_rixslog_scan
 from xas.vonhamos import ProcessingThread, ProcessingWorker, ProcessingTask
 from queue import Queue
-from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from qtpy.QtCore import QObject, Signal, QThread
 if platform == 'darwin':
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_data-mac.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_data-mac.ui')
 else:
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_rixs.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_rixs.ui')
 
 pg.setConfigOption('leftButtonPan', False)
 
@@ -113,7 +113,7 @@ class UIXviewRIXS(*uic.loadUiType(ui_path)):
         # merge_action = menu.addAction("&Add to project")
         parentPosition = self.list_data.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition+QPos)
-        action = menu.exec_()
+        action = menu.exec()
         if action == plot_action:
             self.plot_rixs_data()
         if action == plot_calibration_action:
@@ -424,11 +424,11 @@ class UIXviewRIXS(*uic.loadUiType(ui_path)):
         self._energy_in = self.rixs_dict['energy_in']
         self._energy_out = self.rixs_dict['energy_out']
         self._plot_data = copy.deepcopy(self.rixs_dict[self.last_numerator])
-        if self.checkBox_bkg_subtr.checkState():
+        if self.checkBox_bkg_subtr.isChecked():
             self._plot_data -= self.rixs_dict[self.last_bkg]
-        if self.checkBox_ratio.checkState():
+        if self.checkBox_ratio.isChecked():
             self._plot_data /= self.rixs_dict[self.last_denominator]
-        if self.checkBox_inv_bin.checkState():
+        if self.checkBox_inv_bin.isChecked():
             self._plot_data *= -1
 
     def on_spin_box_changed(self):
@@ -511,17 +511,17 @@ class UIXviewRIXS(*uic.loadUiType(ui_path)):
         #     df, header = load_binned_df_from_file(path)
         #     numer = np.array(df[self.comboBox_data_numerator.currentText()])
         #     denom = np.array(df[self.comboBox_data_denominator.currentText()])
-        #     if self.checkBox_ratio.checkState():
+        #     if self.checkBox_ratio.isChecked():
         #         y_label = (f'{self.comboBox_data_numerator.currentText()} / '
         #                    f'{self.comboBox_data_denominator.currentText()}')
         #         spectrum = numer/denom
         #     else:
         #         y_label = (f'{self.comboBox_data_numerator.currentText()}')
         #         spectrum = numer
-        #     if self.checkBox_log_bin.checkState():
+        #     if self.checkBox_log_bin.isChecked():
         #         spectrum = np.log(spectrum)
         #         y_label = f'ln ({y_label})'
-        #     if self.checkBox_inv_bin.checkState():
+        #     if self.checkBox_inv_bin.isChecked():
         #         spectrum = -spectrum
         #         y_label = f'- {y_label}'
         #
@@ -577,9 +577,9 @@ class UIXviewRIXS(*uic.loadUiType(ui_path)):
                 den_key = self.comboBox_data_denominator.currentText()
                 mu = df[num_key] / df[den_key]
 
-                if self.checkBox_log_bin.checkState():
+                if self.checkBox_log_bin.isChecked():
                     mu = np.log(mu)
-                if self.checkBox_inv_bin.checkState():
+                if self.checkBox_inv_bin.isChecked():
                     mu = -mu
                 mu=np.array(mu)
 

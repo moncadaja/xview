@@ -1,12 +1,12 @@
 from pymatgen.ext.matproj import MPRester
-from PyQt5.QtCore import QObject, pyqtSignal
+from qtpy.QtCore import QObject, Signal
 from larch.xafs import feffrunner
 
 API_KEY = 'MqQSJqQj6Z923DT9I9eZCgvbEM9rbCxT' #iss user AIP gmail
 
 class Worker_Retrive_MatProj_Data(QObject):
-    finished = pyqtSignal()
-    progress = pyqtSignal(int)
+    finished = Signal()
+    progress = Signal(int)
 
     def __init__(self, formula='FeO'):
         super(QObject, self).__init__()
@@ -28,8 +28,8 @@ class Worker_Retrive_MatProj_Data(QObject):
         self.finished.emit()
 
 class Worker_Run_Feff_Calculation(QObject):
-    finished = pyqtSignal()
-    progress = pyqtSignal(int)
+    finished = Signal()
+    progress = Signal(int)
 
     def __init__(self, feff_path):
         super(QObject, self).__init__()

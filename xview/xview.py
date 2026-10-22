@@ -1,6 +1,6 @@
 import sys
-import pkg_resources
-from PyQt5 import  QtWidgets, uic
+import importlib.resources
+from qtpy import  QtWidgets, uic
 # from xview.xasproject.xasproject import XASProject
 from xas.xasproject import XASProject
 from isscloudtools.cloud_dispatcher import CloudDispatcher
@@ -16,10 +16,10 @@ else:
     widget_xview_wip = None
 
 if sys.platform == 'darwin':
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview-mac.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview-mac.ui')
     print('mac')
 else:
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview.ui')
 
 class XviewGui(*uic.loadUiType(ui_path)):
     def __init__(self,
@@ -113,4 +113,4 @@ if __name__ == '__main__':
     main = XviewGui()
     main.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

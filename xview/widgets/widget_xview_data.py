@@ -2,13 +2,13 @@ import os
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import  QtWidgets, QtCore, uic
-from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QMenu
-from PyQt5.Qt import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+from qtpy import  QtWidgets, QtCore, uic
+from qtpy.QtCore import QSettings
+from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import Qt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 
 from sys import platform
@@ -23,10 +23,34 @@ import copy
 from xview.dialogs.FileMetadataDialog import FileMetadataDialog
 from larch.io import read_ascii
 
+
+def _metadata_from_file_header(filepath):
+    """Metadata dict from the header of a processed .dat file (used when no databroker is available).
+
+    Header keys are matched case-insensitively: larch >= 2025 keeps the original
+    spelling (``Scan_edge_energy_eV``) while older versions lower-cased them.
+    """
+    attrs = dict(read_ascii(filepath).attrs)
+    lower = {k.lower(): v for k, v in attrs.items()}
+    md = dict(attrs)
+    if "ISS (8-ID)" in attrs.values():
+        e0 = lower.get('scan_edge_energy_ev')
+    elif "QAS" in attrs.values():
+        e0 = lower.get('e0')
+    else:
+        e0 = lower.get('e0', lower.get('scan_edge_energy_ev'))
+    if e0 is not None:
+        try:
+            md['e0'] = float(e0)
+        except (TypeError, ValueError):
+            md['e0'] = e0
+    return md
+
+
 if platform == 'darwin':
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_data-mac.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_data-mac.ui')
 else:
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_data_new.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_data_new.ui')
 
 
 class UIXviewData(*uic.loadUiType(ui_path)):
@@ -160,7 +184,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
         # merge_action = menu.addAction("&Add to project")
         parentPosition = self.list_data.mapToGlobal(QtCore.QPoint(0, 0))
         menu.move(parentPosition+QPos)
-        action = menu.exec_()
+        action = menu.exec()
         if action == plot_action:
             self.plot_xas_data()
         elif action == add_to_project_action:
@@ -291,7 +315,7 @@ class UIXviewData(*uic.loadUiType(ui_path)):
             spectra = []
             y_label = ''
             for numerator, numerator_name in zip(numerators, numerators_names):
-                if self.checkBox_ratio.checkState():
+                if self.checkBox_ratio.isChecked():
                     mu_channel = f'{numerator_name}/{denominator_name}'
 
                     spectra.append(numerator/denominator)
@@ -300,10 +324,10 @@ class UIXviewData(*uic.loadUiType(ui_path)):
                     spectra.append(numerator)
                 y_label += mu_channel
             for spectrum in spectra:
-                if self.checkBox_log_bin.checkState():
+                if self.checkBox_log_bin.isChecked():
                     spectrum = np.log(spectrum)
                     y_label = f'ln ({y_label})'
-                if self.checkBox_inv_bin.checkState():
+                if self.checkBox_inv_bin.isChecked():
                     spectrum = -spectrum
                     y_label = f'- {y_label}'
                 fname = i.text()
@@ -437,24 +461,14 @@ class UIXviewData(*uic.loadUiType(ui_path)):
                     if self.db is not None:
                         md = self.db[uid]['start']
                     else:
-                        larch_group = read_ascii(filepath)
-                        md = dict(larch_group.attrs)
-                        if "ISS (8-ID)" in md.values():
-                            md['e0'] = larch_group.attrs.scan_edge_energy_ev
-                        elif "QAS" in md.values():
-                            md['e0'] = larch_group.attrs.e0
+                        md = _metadata_from_file_header(filepath)
             except KeyError:
                 try:
                     uid = header[header.find('UID:') + 5:header.find('\n', header.find('UID:'))]
                     if self.db is not None:
                         md = self.db[uid]['start']
                     else:
-                        larch_group = read_ascii(filepath)
-                        md = dict(larch_group.attrs)
-                        if "ISS (8-ID)" in md.values():
-                            md['e0'] = larch_group.attrs.scan_edge_energy_ev
-                        elif "QAS" in md.values():
-                            md['e0'] = larch_group.attrs.e0
+                        md = _metadata_from_file_header(filepath)
                 except:
                     md = {}
                     pass
@@ -492,16 +506,16 @@ class UIXviewData(*uic.loadUiType(ui_path)):
             energy = df[energy_key]
 
             for numerator, numerator_name in zip(numerators, numerators_names):
-                if self.checkBox_ratio.checkState():
+                if self.checkBox_ratio.isChecked():
                     spectrum = (numerator / denominator)
                     mu_channel = f'{numerator_name}-{denominator_name}'
                 else:
                     spectrum = numerator
                     mu_channel = f'{numerator_name}-{denominator_name}'
 
-                if self.checkBox_log_bin.checkState():
+                if self.checkBox_log_bin.isChecked():
                     spectrum = np.log(spectrum)
-                if self.checkBox_inv_bin.checkState():
+                if self.checkBox_inv_bin.isChecked():
                     spectrum = -spectrum
                 try:
                     df_norm = {}

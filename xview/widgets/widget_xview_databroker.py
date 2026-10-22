@@ -1,13 +1,13 @@
 import os
 import matplotlib.patches as mpatches
 import numpy as np
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import  QtWidgets, QtCore, uic
-from PyQt5.QtCore import QSettings, QThread
-from PyQt5.QtWidgets import QMenu
-from PyQt5.Qt import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+from qtpy import  QtWidgets, QtCore, uic
+from qtpy.QtCore import QSettings, QThread
+from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import Qt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 
 from xas.xasproject import XASDataSet
@@ -39,9 +39,9 @@ from isstools.dialogs.BasicDialogs import message_box
 
 
 if platform == 'darwin':
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_databroker.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_databroker.ui')
 else:
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_databroker.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_databroker.ui')
 
 
 class UIXviewDatabroker(*uic.loadUiType(ui_path)):
@@ -430,7 +430,7 @@ def get_SearchAndOpen_widget(parent, catalog=None, columns='columns', add_open_b
     #     add_to_project_action = menu.addAction("&Add to project")
     #     parentPosition = self.list_data.mapToGlobal(QtCore.QPoint(0, 0))
     #     menu.move(parentPosition+QPos)
-    #     action = menu.exec_()
+    #     action = menu.exec()
     #     if action == plot_action:
     #         self.plot_xas_data()
     #     elif action == add_to_project_action:
@@ -522,17 +522,17 @@ def get_SearchAndOpen_widget(parent, catalog=None, columns='columns', add_open_b
     #         df, header = load_binned_df_from_file(path)
     #         numer = np.array(df[self.comboBox_data_numerator.currentText()])
     #         denom = np.array(df[self.comboBox_data_denominator.currentText()])
-    #         if self.checkBox_ratio.checkState():
+    #         if self.checkBox_ratio.isChecked():
     #             y_label = (f'{self.comboBox_data_numerator.currentText()} / '
     #                        f'{self.comboBox_data_denominator.currentText()}')
     #             spectrum = numer/denom
     #         else:
     #             y_label = (f'{self.comboBox_data_numerator.currentText()}')
     #             spectrum = numer
-    #         if self.checkBox_log_bin.checkState():
+    #         if self.checkBox_log_bin.isChecked():
     #             spectrum = np.log(spectrum)
     #             y_label = f'ln ({y_label})'
-    #         if self.checkBox_inv_bin.checkState():
+    #         if self.checkBox_inv_bin.isChecked():
     #             spectrum = -spectrum
     #             y_label = f'- {y_label}'
     #
@@ -571,9 +571,9 @@ def get_SearchAndOpen_widget(parent, catalog=None, columns='columns', add_open_b
     #             den_key = self.comboBox_data_denominator.currentText()
     #             mu = df[num_key] / df[den_key]
     #
-    #             if self.checkBox_log_bin.checkState():
+    #             if self.checkBox_log_bin.isChecked():
     #                 mu = np.log(mu)
-    #             if self.checkBox_inv_bin.checkState():
+    #             if self.checkBox_inv_bin.isChecked():
     #                 mu = -mu
     #             mu=np.array(mu)
     #

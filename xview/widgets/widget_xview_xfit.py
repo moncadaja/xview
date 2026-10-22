@@ -2,14 +2,14 @@ import os
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import  QtWidgets, QtCore, uic
-from PyQt5.QtCore import QSettings, QThread
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QMenu
-from PyQt5.Qt import Qt
-# from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+from qtpy import  QtWidgets, QtCore, uic
+from qtpy.QtCore import QSettings, QThread
+from qtpy.QtGui import QColor
+from qtpy.QtWidgets import QMenu
+from qtpy.QtCore import Qt
+# from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, \
 #     NavigationToolbar2QT as NavigationToolbar
 
 from sys import platform
@@ -18,7 +18,7 @@ from xraydb import atomic_symbol
 from larch.xafs.feffutils import get_feff_pathinfo
 from xview.xfit_classes.lightshow_pymatgen_bug_fix import FEFFDictSet_modified
 from xview.xfit_classes.plotting_tools import MplCanvas, create_pyqtgraph_widget
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from larch.xafs import xftf
 from larch.xafs.feffdat import ff2chi, feffpath
 from larch.symboltable import Group
@@ -36,9 +36,9 @@ from xview.xfit_classes.workers import Worker_Run_Feff_Calculation as worker_fef
 from xview.xfit_classes.utils import read_lineEdit_and_perform_sanity_check, get_default_feff_parameters
 
 if platform == 'darwin':
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xfit.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xfit.ui')
 else:
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xfit.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xfit.ui')
 
 
 ATOMIC_SYMBOL_DICT = {'element': [atomic_symbol(i) for i in range(20, 93)]}
@@ -136,7 +136,7 @@ class UIXFIT(*uic.loadUiType(ui_path)):
 
     def _make_item(self, parent=None, item_list=None):
         _item = QtWidgets.QTreeWidgetItem(parent, item_list)
-        _item.setFlags(_item.flags() | Qt.ItemIsTristate | Qt.ItemIsUserCheckable)
+        _item.setFlags(_item.flags() | Qt.ItemIsAutoTristate | Qt.ItemIsUserCheckable)
         _item.setCheckState(0, Qt.Unchecked)
         return _item
 
@@ -155,7 +155,7 @@ class UIXFIT(*uic.loadUiType(ui_path)):
         if absorbing_atom_valid_input and edge_valid_input:
             self.treeWidget_paths_dict['paths'] = {}
             for key in self._treeWidget.keys():
-                if self._treeWidget[key].checkState(0) == 2:
+                if self._treeWidget[key].checkState(0) == Qt.Checked:
                     self.treeWidget_paths_dict['paths'][key] = os.path.join(STRUCTURE_FOLDER,
                                                                             self.documents[key].formula_pretty, key)
                     default_feff_parameters = get_default_feff_parameters(title=self.documents[key].material_id.string)
@@ -284,7 +284,7 @@ class UIXFIT(*uic.loadUiType(ui_path)):
         for key in self.treeWidget_paths_dict['widgets'].keys():
             self.treeWidget_paths_dict['selected_feff_data'][key] = {}
             for k, value in self.treeWidget_paths_dict['widgets'][key].items():
-                if value.checkState(0) == 2:
+                if value.checkState(0) == Qt.Checked:
                     __path = os.path.join(self.treeWidget_paths_dict['paths'][key], k)
                     _feffpath = feffpath(filename=__path)
                     _group = ff2chi([_feffpath])

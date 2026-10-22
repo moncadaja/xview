@@ -1,7 +1,7 @@
-from PyQt5 import uic, QtGui, QtCore
-import pkg_resources
+from qtpy import uic, QtGui, QtCore
+import importlib.resources
 
-ui_path = pkg_resources.resource_filename('xview', 'dialogs/MetadataDialog.ui')
+ui_path = str(importlib.resources.files('xview') / 'dialogs/MetadataDialog.ui')
 
 class MetadataDialog(*uic.loadUiType(ui_path)):
 
@@ -15,11 +15,11 @@ class MetadataDialog(*uic.loadUiType(ui_path)):
         self.lineEdit_edge.setText(f'{edge}')
         self.lineEdit_e0.setText(f'{e0}')
         self.lineEdit_uid.setText(uid)
-        self.checkBox_reference.setCheckState(reference)
+        self.checkBox_reference.setChecked(bool(reference))
 
 
     def getValues(self):
-        referenceFlag = int(self.checkBox_reference.checkState() == 2)
+        referenceFlag = int(self.checkBox_reference.isChecked())
         return (self.lineEdit_sample_name.text(), self.lineEdit_compound.text(),
                 self.lineEdit_element.text(), self.lineEdit_edge.text(), self.lineEdit_e0.text(),
                 referenceFlag, self.lineEdit_uid.text())

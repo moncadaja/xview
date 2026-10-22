@@ -1,14 +1,15 @@
 import os
 import matplotlib.patches as mpatches
 import numpy as np
-import pkg_resources
-from PyQt5 import QtGui, QtWidgets, QtCore, uic
-from PyQt5.Qt import QSplashScreen, QObject
-from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
-from PyQt5.QtWidgets import QMenu
-from PyQt5.QtGui import QPixmap
-from PyQt5.Qt import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+import importlib.resources
+from qtpy import QtGui, QtWidgets, QtCore, uic
+from qtpy.QtWidgets import QSplashScreen
+from qtpy.QtCore import QObject
+from qtpy.QtCore import QSettings, QThread, Signal, QTimer, QDateTime
+from qtpy.QtWidgets import QMenu
+from qtpy.QtGui import QPixmap
+from qtpy.QtCore import Qt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 from sys import platform
 from pathlib import Path
@@ -26,9 +27,9 @@ from os.path import expanduser
 
 
 if platform == 'darwin':
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_stats-mac.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_stats-mac.ui')
 else:
-    ui_path = pkg_resources.resource_filename('xview', 'ui/ui_xview_stats.ui')
+    ui_path = str(importlib.resources.files('xview') / 'ui/ui_xview_stats.ui')
 
 
 class UIXviewStats(*uic.loadUiType(ui_path)):
@@ -170,7 +171,7 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
             export_to_mcr_project = menu.addAction("&Add dataset as MCR project")
             parentPosition = self.list_project.mapToGlobal(QtCore.QPoint(0, 0))
             menu.move(parentPosition + QPos)
-            action = menu.exec_()
+            action = menu.exec()
             if action == rename_action:
                 self.rename_dataset()
             elif action == merge_action:
@@ -405,7 +406,7 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                     if self.radioButton_mu_xasproject.isChecked():
                         data = ds.mu
                     elif self.radioButton_norm_xasproject.isChecked():
-                        if self.checkBox_norm_flat_xasproject.checkState():
+                        if self.checkBox_norm_flat_xasproject.isChecked():
                             data = ds.flat
                         else:
                             data = ds.norm
@@ -419,17 +420,17 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                     self.figure_project.ax.plot(energy, data, label=ds.name)
 
                     if self.radioButton_mu_xasproject.isChecked() and not self.checkBox_deriv.isChecked():
-                        if self.checkBox_preedge_show.checkState():
+                        if self.checkBox_preedge_show.isChecked():
                             self.figure_project.ax.plot(ds.energy, ds.pre_edge, label='Preedge', linewidth=0.75)
-                        if self.checkBox_postedge_show.checkState():
+                        if self.checkBox_postedge_show.isChecked():
                             self.figure_project.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
-                        if self.checkBox_background_show.checkState():
+                        if self.checkBox_background_show.isChecked():
                             self.figure_project.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
 
                 self.parent.set_figure(self.figure_project.ax, self.canvas_project, label_x='Energy /eV',
                                 label_y=r'$\chi  \mu$' + '(E)'),
 
-                if self.checkBox_force_range_E.checkState():
+                if self.checkBox_force_range_E.isChecked():
                     self.figure_project.ax.set_xlim(
                         (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_lo.text())),
                         (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_hi.text())))
@@ -454,7 +455,7 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                                 label_x='k (' + r'$\AA$' + '$^1$' + ')',
                                 label_y=r'$\chi  \mu$' + '(k)')
 
-                if self.checkBox_force_range_k.checkState():
+                if self.checkBox_force_range_k.isChecked():
                     self.figure_project.ax.set_xlim(float(self.lineEdit_range_k_lo.text()),
                                                       float(self.lineEdit_range_k_hi.text()))
                 self.current_plot_in = 'k'
@@ -467,18 +468,18 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                     ds = self.parent.project[index.row()]
                     # ds.extract_ft_force(window=window)
                     self._normalize_ds_in_full(ds, window=window)
-                    if self.checkBox_show_chir_mag.checkState():
+                    if self.checkBox_show_chir_mag.isChecked():
                         self.figure_project.ax.plot(ds.r, ds.chir_mag, label=ds.name)
-                    if self.checkBox_show_chir_im.checkState():
+                    if self.checkBox_show_chir_im.isChecked():
                         self.figure_project.ax.plot(ds.r, ds.chir_im, label=(ds.name + ' Im'))
-                    if self.checkBox_show_chir_re.checkState():
+                    if self.checkBox_show_chir_re.isChecked():
                         self.figure_project.ax.plot(ds.r, ds.chir_re, label=(ds.name + ' Re'))
                     # if self.checkBox_show_chir_pha.checked:
                     #    self.figure_project.ax.plot(ds.r, ds.chir_pha, label=(ds.name + ' Ph'))
 
                 self.parent.set_figure(self.figure_project.ax, self.canvas_project, label_y=r'$\chi  \mu$' + '(k)',
                                 label_x='R (' + r'$\AA$' + ')')
-                if self.checkBox_force_range_R.checkState():
+                if self.checkBox_force_range_R.isChecked():
                     self.figure_project.ax.set_xlim(float(self.lineEdit_range_R_lo.text()),
                                                       float(self.lineEdit_range_R_hi.text()))
                 self.current_plot_in = 'R'
@@ -692,7 +693,7 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                     e0 = ds.e0
                     reference = 0
                     self._dlg = MetadataDialog(sample_name, compound, element, edge, e0, reference, uid, parent=self)
-                    if self._dlg.exec_():
+                    if self._dlg.exec():
                         sample_name, compound, element, edge, e0, reference, uid = self._dlg.getValues()
                         metadata = {'Sample_name': sample_name,
                                     'compound': compound,
@@ -763,7 +764,7 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
             messageBox.addButton(QtWidgets.QPushButton('mu(E)'), QtWidgets.QMessageBox.YesRole)
             messageBox.addButton(QtWidgets.QPushButton('normalized mu(E)'), QtWidgets.QMessageBox.NoRole)
             messageBox.addButton(QtWidgets.QPushButton('flattened mu(E)'), QtWidgets.QMessageBox.NoRole)
-            ret = messageBox.exec_()
+            ret = messageBox.exec()
             return ret
 
         def message_box_warning(self, line1='Warning', line2=''):
@@ -774,7 +775,7 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                 messageBox.setInformativeText(line2)
             messageBox.setWindowTitle("Warning")
             messageBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-            messageBox.exec_()
+            messageBox.exec()
 
         def set_ft_window(self):
             window = dict()
@@ -806,7 +807,7 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                     data -= data[0]
                     data /= data.max()
                     # elif self.radioButton_norm_xasproject.isChecked():
-                    #     if self.checkBox_norm_flat_xasproject.checkState():
+                    #     if self.checkBox_norm_flat_xasproject.isChecked():
                     #         data = ds.flat
                     #     else:
                     #         data = ds.norm
@@ -820,17 +821,17 @@ class UIXviewStats(*uic.loadUiType(ui_path)):
                     self.figure_project.ax.plot(energy, data, label=ds.name)
 
                     # if self.radioButton_mu_xasproject.isChecked() and not self.checkBox_deriv.isChecked():
-                    #     if self.checkBox_preedge_show.checkState():
+                    #     if self.checkBox_preedge_show.isChecked():
                     #         self.figure_project.ax.plot(ds.energy, ds.pre_edge, label='Preedge', linewidth=0.75)
-                    #     if self.checkBox_postedge_show.checkState():
+                    #     if self.checkBox_postedge_show.isChecked():
                     #         self.figure_project.ax.plot(ds.energy, ds.post_edge, label='Postedge', linewidth=0.75)
-                    #     if self.checkBox_background_show.checkState():
+                    #     if self.checkBox_background_show.isChecked():
                     #         self.figure_project.ax.plot(ds.energy, ds.bkg, label='Background', linewidth=0.75)
 
                 self.parent.set_figure(self.figure_project.ax, self.canvas_project, label_x='Energy /eV',
                                 label_y=r'$\chi  \mu$' + '(E)'),
 
-                # if self.checkBox_force_range_E.checkState():
+                # if self.checkBox_force_range_E.isChecked():
                 #     self.figure_project.ax.set_xlim(
                 #         (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_lo.text())),
                 #         (float(self.lineEdit_e0.text()) + float(self.lineEdit_range_E_hi.text())))

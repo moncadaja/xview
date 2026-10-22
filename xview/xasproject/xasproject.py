@@ -1,4 +1,4 @@
-from PyQt5 import QtCore
+from qtpy import QtCore
 import pandas as pd
 from larch import Group as xafsgroup
 from larch.xafs import pre_edge, autobk, mback, xftf
@@ -11,7 +11,7 @@ import pickle
 class XASDataSet:
     _md = {}
     _filename = ''
-    _larch = Interpreter(with_plugins=False)
+    _larch = Interpreter()
 
     def __init__(self, name=None, md=None, energy = None,mu=None, filename=None, datatype=None, *args, **kwargs):
         self.larch = xafsgroup()
@@ -54,7 +54,7 @@ class XASDataSet:
         self.energy_deriv=(self.energy[1:]+self.energy[:-1])/2
 
     def flatten(self):
-        step_index = int(np.argwhere(self.energy > self.e0)[0])
+        step_index = int(np.flatnonzero(self.energy > self.e0)[0])
         zeros = np.zeros(step_index)
         ones = np.ones(self.energy.shape[0] - step_index)
         step = np.concatenate((zeros, ones), axis=0)
@@ -183,7 +183,7 @@ class XASDataSet:
 
 
 class XASProject(QtCore.QObject):
-    datasets_changed = QtCore.pyqtSignal(object)
+    datasets_changed = QtCore.Signal(object)
     _datasets = []
 
     def __init__(self, *args, **kwargs):
